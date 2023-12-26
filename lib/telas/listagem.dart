@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:imc_kalil/controllers/medicao_controller.dart';
+import 'package:imc_kalil/repositories/medicao_repository.dart';
 import 'package:imc_kalil/models/medicao.dart';
 
 class ListagemTela extends StatefulWidget {
@@ -10,15 +10,23 @@ class ListagemTela extends StatefulWidget {
 }
 
 class _ListagemTelaState extends State<ListagemTela> {
-  var medicaoController = MedicaoController();
+  var medicaoController = MedicaoRepository();
   var pesoController = TextEditingController(text: '');
   var alturaController = TextEditingController(text: '');
+  List<Medicao> medicoes = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    listarMedicoes();
+  }
 
   void novaMedicao(BuildContext context) {
-    setState(() {
-      pesoController.text = '';
-      alturaController.text = '';
-    });
+    pesoController.text = '';
+    getDados();
+    setState(() {});
+
     showDialog(
         context: context,
         builder: (BuildContext buildContext) {
@@ -69,19 +77,39 @@ class _ListagemTelaState extends State<ListagemTela> {
         });
   }
 
-  void adicionarMedicao() {
-    var medicao = Medicao();
-    medicao.altura = double.parse(alturaController.text);
-    medicao.peso = double.parse(pesoController.text);
-    medicaoController.adicionar(medicao);
-    setState(() {
-      medicaoController.listar();
-    });
+  void adicionarMedicao() async {
+    if (pesoController.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Entre com seu peso."),
+      ));
+      return;
+    }
+    if (alturaController.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Entre com sua altura."),
+      ));
+      return;
+    }
+    await medicaoController.adicionar(Medicao(
+      0,
+      double.parse(pesoController.text),
+      double.parse(alturaController.text),
+    ));
+    listarMedicoes();
+  }
+
+  void listarMedicoes() async {
+    medicoes = await medicaoController.listar();
+    setState(() {});
+  }
+
+  void getDados() async {
+    alturaController.text = (await medicaoController.getAltura()).toString();
   }
 
   ListView widgetListagem() {
     return ListView(
-      children: medicaoController.listar().map((medicao) {
+      children: medicoes.map((medicao) {
         Text? resultado;
         if (medicao.imc < 16.0) {
           resultado = const Text(

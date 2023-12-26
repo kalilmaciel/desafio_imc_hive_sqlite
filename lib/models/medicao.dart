@@ -1,11 +1,11 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
 class Medicao {
-  String _id = UniqueKey().toString();
+  int _id = 0;
   double _peso = 0.0;
   double _altura = 0.0;
+
+  Medicao(this._id, this._peso, this._altura);
 
   get id => _id;
 
